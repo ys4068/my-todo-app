@@ -1,4 +1,3 @@
-// 待办事项类型
 export interface Todo {
   id: number
   title: string

@@ -21,7 +21,7 @@ export default function AddTodo() {
       if (!res.ok) throw new Error('添加失败')
 
       setTitle('')
-      // 刷新列表（简单方式，也可以用回调）
+      // 刷新列表
       window.dispatchEvent(new CustomEvent('todo-added'))
     } catch (error) {
       console.error('添加待办失败:', error)
