@@ -1,0 +1,8 @@
+{
+  "framework": "nextjs",
+  "regions": ["hnd1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://agvitqqorxkscfvlnkqu.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFndml0cXFvcnhrc2Nmdmxua3F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxOTQ3NzgsImV4cCI6MjA5Mjc3MDc3OH0.h_3HHmZXuZ8R7249rIlLFFJSl6wLPQnbzkYdsyAt9C8"
+  }
+}
