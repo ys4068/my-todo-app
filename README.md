@@ -1,35 +1,74 @@
-# 待办清单应用 📝
+# 📝 Todo List 待办清单应用
 
-使用 Next.js + Supabase + Vercel 构建的待办事项应用。
+基于 Next.js + Supabase + Vercel 的全栈待办清单应用。
 
-## 技术栈
+## 🚀 功能特性
 
-- **Next.js 15** - React 框架
-- **TypeScript** - 类型安全
-- **Tailwind CSS** - 样式
-- **Supabase** - PostgreSQL 数据库
-- **Vercel** - 部署平台
+- ✅ 添加任务
+- ✅ 标记任务完成/未完成
+- ✅ 删除任务
+- ✅ 数据持久化到 Supabase 数据库
+- ✅ 响应式设计，支持移动端
 
-## 快速开始
+## 🛠️ 技术栈
+
+- **前端框架**: Next.js 16 + React 19
+- **数据库**: Supabase (PostgreSQL)
+- **样式**: Tailwind CSS 4
+- **部署**: Vercel
+
+## 📦 快速开始
 
 ### 1. 配置 Supabase
 
-1. 访问 https://app.supabase.com 创建新项目
-2. 在 SQL Editor 中运行 `supabase-schema.sql` 创建表
-3. 获取项目配置：
-   - Settings → API → Project URL
-   - Settings → API → anon/public key
+在 Supabase Dashboard 获取配置信息：
+1. 访问 https://supabase.com/dashboard
+2. 进入您的项目
+3. 点击 Settings ⚙️ → API
+4. 复制 `Project URL` 和 `anon public` key
 
-### 2. 配置环境变量
+### 2. 设置环境变量
 
 编辑 `.env.local` 文件：
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=你的 key
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://agvitqqorxkscfvlnkqu.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=你的 anon key
 ```
 
-### 3. 本地运行
+### 3. 创建数据库表
+
+在 Supabase SQL Editor 中运行：
+
+```sql
+-- 创建待办表
+CREATE TABLE IF NOT EXISTS todos (
+  id BIGSERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  is_completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 启用 Row Level Security
+ALTER TABLE todos ENABLE ROW LEVEL SECURITY;
+
+-- 创建策略：允许所有人访问
+CREATE POLICY "允许所有人访问" ON todos
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_todos_created_at ON todos(created_at DESC);
+```
+
+### 4. 安装依赖
+
+```bash
+npm install
+```
+
+### 5. 运行开发服务器
 
 ```bash
 npm run dev
@@ -37,44 +76,47 @@ npm run dev
 
 访问 http://localhost:3000
 
-### 4. 部署到 Vercel
-
-```bash
-# 安装 Vercel CLI
-npm install -g vercel
-
-# 部署
-vercel
-
-# 按提示操作，记得在 Vercel 面板添加环境变量
-```
-
-或者：
-1. 访问 https://vercel.com
-2. Import Git 仓库
-3. 添加环境变量
-4. 一键部署！
-
-## 功能
-
-- ✅ 添加待办事项
-- ✅ 标记完成/未完成
-- ✅ 删除待办
-- ✅ 数据云端同步
-
-## 项目结构
+## 📁 项目结构
 
 ```
-src/
-├── app/
-│   └── page.tsx        # 首页
-├── components/
-│   └── TodoList.tsx    # 待办组件
-└── lib/
-    ├── supabase.ts     # Supabase 客户端
-    └── types.ts        # 类型定义
+todo-app/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx              # 主页面
+│   │   └── api/todos/route.ts    # API 接口
+│   ├── components/
+│   │   ├── AddTodo.tsx           # 添加任务组件
+│   │   └── TodoList.tsx          # 任务列表组件
+│   └── lib/
+│       ├── supabase.ts           # Supabase 客户端
+│       └── types.ts              # TypeScript 类型
+├── .env.local                    # 环境变量
+├── supabase-schema.sql           # 数据库表结构
+└── package.json
 ```
 
----
+## 🚀 部署到 Vercel
 
-由小侯 🐒 帮主人创建！
+1. 将代码推送到 GitHub
+2. 访问 https://vercel.com
+3. 导入您的 GitHub 仓库
+4. 添加环境变量：
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. 点击 Deploy
+
+## 📖 API 接口
+
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/todos | 获取所有任务 |
+| POST | /api/todos | 创建新任务 |
+| PUT | /api/todos | 更新任务 |
+| DELETE | /api/todos?id=1 | 删除任务 |
+
+## 🎨 界面预览
+
+- 输入框 + 添加按钮 → 添加新任务
+- 复选框 → 标记完成/未完成
+- 删除按钮 → 删除任务
+- 已完成任务会显示删除线并降低透明度
