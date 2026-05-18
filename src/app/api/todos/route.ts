@@ -8,18 +8,69 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseKey)
 }
 
-// GET - 获取所有待办
-export async function GET() {
+// GET - 获取所有待办（支持按分类筛选和关联查询）
+export async function GET(request: Request) {
   try {
     const supabase = getSupabaseClient()
-    const { data, error } = await supabase
-      .from('todos')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { searchParams } = new URL(request.url)
+    const categoryId = searchParams.get('category_id')
+    const includeCategory = searchParams.get('include_category') === 'true'
+
+    let query = supabase.from('todos').select('*')
+
+    // 按分类筛选
+    if (categoryId !== null) {
+      if (categoryId === 'null') {
+        // 获取未分类的待办
+        query = query.is('category_id', null)
+      } else {
+        const categoryIdNum = parseInt(categoryId)
+        if (isNaN(categoryIdNum)) {
+          return NextResponse.json(
+            { error: '无效的分类ID' },
+            { status: 400 }
+          )
+        }
+        query = query.eq('category_id', categoryIdNum)
+      }
+    }
+
+    query = query.order('created_at', { ascending: false })
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Supabase error:', error)
       throw error
+    }
+
+    // 如果需要包含分类信息
+    if (includeCategory && data && data.length > 0) {
+      const todosWithCategory = []
+      for (const todo of data) {
+        if (todo.category_id) {
+          const { data: categoryData, error: categoryError } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('id', todo.category_id)
+            .single()
+
+          if (categoryError && categoryError.code !== 'PGRST116') {
+            console.error('获取分类信息失败:', categoryError)
+            // 继续处理，但不包含分类信息
+            todosWithCategory.push({ ...todo, category: null })
+          } else {
+            todosWithCategory.push({ ...todo, category: categoryData || null })
+          }
+        } else {
+          todosWithCategory.push({ ...todo, category: null })
+        }
+      }
+      return NextResponse.json(todosWithCategory, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      })
     }
 
     return NextResponse.json(data || [], {
@@ -36,11 +87,11 @@ export async function GET() {
   }
 }
 
-// POST - 创建新待办
+// POST - 创建新待办（支持指定分类）
 export async function POST(request: Request) {
   try {
     const supabase = getSupabaseClient()
-    const { title } = await request.json()
+    const { title, category_id } = await request.json()
 
     if (!title || !title.trim()) {
       return NextResponse.json(
@@ -49,9 +100,28 @@ export async function POST(request: Request) {
       )
     }
 
+    const insertData: Record<string, any> = {
+      title: title.trim(),
+      is_completed: false
+    }
+
+    // 处理分类ID
+    if (category_id !== undefined && category_id !== null) {
+      const categoryIdNum = parseInt(category_id)
+      if (isNaN(categoryIdNum)) {
+        return NextResponse.json(
+          { error: '无效的分类ID' },
+          { status: 400 }
+        )
+      }
+      insertData.category_id = categoryIdNum
+    } else {
+      insertData.category_id = null
+    }
+
     const { data, error } = await supabase
       .from('todos')
-      .insert([{ title: title.trim(), is_completed: false }])
+      .insert([insertData])
       .select()
 
     if (error) {
@@ -69,11 +139,11 @@ export async function POST(request: Request) {
   }
 }
 
-// PUT - 更新待办
+// PUT - 更新待办（支持更新分类）
 export async function PUT(request: Request) {
   try {
     const supabase = getSupabaseClient()
-    const { id, title, is_completed } = await request.json()
+    const { id, title, is_completed, category_id } = await request.json()
 
     if (!id) {
       return NextResponse.json(
@@ -85,6 +155,20 @@ export async function PUT(request: Request) {
     const updateData: Record<string, any> = {}
     if (title !== undefined) updateData.title = title
     if (is_completed !== undefined) updateData.is_completed = is_completed
+    if (category_id !== undefined) {
+      if (category_id === null) {
+        updateData.category_id = null
+      } else {
+        const categoryIdNum = parseInt(category_id)
+        if (isNaN(categoryIdNum)) {
+          return NextResponse.json(
+            { error: '无效的分类ID' },
+            { status: 400 }
+          )
+        }
+        updateData.category_id = categoryIdNum
+      }
+    }
 
     const { data, error } = await supabase
       .from('todos')
