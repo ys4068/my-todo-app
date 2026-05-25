@@ -1,6 +1,9 @@
 {
   "framework": "nextjs",
   "regions": ["hnd1", "icn1", "sin1"],
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "functions": {
     "src/app/api/todos/route.ts": {
       "maxDuration": 10
