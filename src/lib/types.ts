@@ -1,6 +1,8 @@
 export interface Category {
   id: number
   name: string
+  color: string
+  icon: string
   created_at: string
 }
 
@@ -13,5 +15,5 @@ export interface Todo {
 }
 
 export interface TodoWithCategory extends Todo {
-  category: Category | null
+  category?: Category | null
 }
