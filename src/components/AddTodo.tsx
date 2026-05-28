@@ -6,6 +6,7 @@ import type { Category } from '@/lib/types'
 export default function AddTodo() {
   const [title, setTitle] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
+  const [dueDate, setDueDate] = useState<string>('')
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [categoriesLoading, setCategoriesLoading] = useState(true)
@@ -38,7 +39,8 @@ export default function AddTodo() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           title: title.trim(),
-          category_id: categoryId
+          category_id: categoryId,
+          due_date: dueDate || null
         })
       })
 
@@ -49,6 +51,7 @@ export default function AddTodo() {
 
       setTitle('')
       setCategoryId(null)
+      setDueDate('')
       // 刷新列表
       window.dispatchEvent(new CustomEvent('todo-added'))
     } catch (error: any) {
@@ -79,8 +82,8 @@ export default function AddTodo() {
         </button>
       </div>
       
-      {/* 分类选择 */}
-      <div className="flex items-center gap-2">
+      {/* 分类和截止日期选择 */}
+      <div className="flex flex-wrap items-center gap-2">
         <label htmlFor="category-select" className="text-sm text-gray-600">
           分类:
         </label>
@@ -129,6 +132,18 @@ export default function AddTodo() {
         >
           + 新建
         </button>
+        
+        <label htmlFor="due-date-input" className="text-sm text-gray-600">
+          截止日期:
+        </label>
+        <input
+          id="due-date-input"
+          type="datetime-local"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="px-3 py-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          disabled={loading}
+        />
       </div>
     </form>
   )
